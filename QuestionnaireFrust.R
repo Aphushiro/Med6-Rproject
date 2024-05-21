@@ -1,11 +1,11 @@
 library(tidyverse)
 
 justFrust <- df %>% 
-  group_by(Frust1, Frust2, Frust3) %>% 
+  group_by(ID, FrustLumber, FrustGolf, FrustSand) %>% 
   summarise()
 
 # Reshape data to long format
-justFrust_long <- justFrust %>%
+justFrust_long <- df %>%
   pivot_longer(cols = starts_with("Frust"), names_to = "Variable", values_to = "Value")
 
 # Calculate mean and standard error for each variable
@@ -29,7 +29,7 @@ ggplot() +
        y = "Frustration Rating") +
   scale_y_continuous(breaks = seq(-3, 3, 1), limits = c(-3, 3)) +
   theme_minimal() +
-  scale_x_discrete(labels = c("Frust1" = "Lumber", "Frust2" = "Golf", "Frust3" = "Sand")) +
+  scale_x_discrete(labels = c("FrustLumber" = "Lumber", "FrustGolf" = "Golf", "FrustSand" = "Sand")) +
   theme(panel.grid.major.y = element_blank(),
         #panel.grid.minor.y = element_blank(),
         plot.title = element_text(hjust = 0.5))
