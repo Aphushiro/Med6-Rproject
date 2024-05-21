@@ -1,7 +1,11 @@
 library(tidyverse)
 
+justFrust <- df %>% 
+  group_by(Frust1, Frust2, Frust3) %>% 
+  summarise()
+
 # Reshape data to long format
-justFrust_long <- df %>%
+justFrust_long <- justFrust %>%
   pivot_longer(cols = starts_with("Frust"), names_to = "Variable", values_to = "Value")
 
 # Calculate mean and standard error for each variable
