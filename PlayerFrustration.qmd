@@ -376,3 +376,26 @@ ggplot() +
 ```
 
 
+```{r}
+# Load necessary libraries
+install.packages("ordinal")  # Install the ordinal package if not already installed
+library(ordinal)
+library(tidyverse)
+
+# Assuming df is your existing data frame
+# Step 1: Select ID and columns starting with "Frust" and reshape the data
+df_long <- df %>%
+  select(ID, starts_with("Frust")) %>%
+  pivot_longer(cols = -ID, names_to = "Variable", values_to = "Value")
+
+# Step 2: Ensure 'Value' is treated as an ordinal factor
+df_long$Value <- as.ordered(df_long$Value)
+
+# Step 3: Fit the cumulative link mixed model
+clmm_model <- clmm(Value ~ Variable + (1 | ID), data = df_long)
+
+# Step 4: Display the summary of the model
+summary(clmm_model)
+
+```
+
