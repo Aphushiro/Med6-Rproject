@@ -1,0 +1,178 @@
+# Load necessary library
+library(tidyverse)
+
+# Create lumberMeans
+```{r}
+# Load necessary library
+library(tidyverse)
+
+# Function to process each CSV file
+process_file <- function(file) {
+  data <- read.csv2(file, stringsAsFactors = FALSE)
+  resting_data <- data %>% filter(Event == "Resting")
+  resting_confidences <- resting_data %>%
+    filter(!is.na(BCIConfidence) &
+             as.numeric(BCIConfidence) > 0.0) %>%
+    select(BCIConfidence)
+  resting_confidences_vector <- as.numeric(resting_confidences$BCIConfidence)
+  return(resting_confidences_vector)
+}
+
+# List of CSV file paths
+csv_files <- list.files(path = "LumberData/LumberGame", pattern = "[0-9]+lumber.csv", full.names = TRUE)
+
+# Sort files based on the numeric part of their names
+csv_files <- csv_files[order(as.numeric(gsub("\\D", "", csv_files)))]
+
+# Process each file and store results in a list
+all_resting_confidences <- list()
+for (file in csv_files) {
+  confidences <- process_file(file)
+  all_resting_confidences[[file]] <- confidences
+}
+
+# Determine the maximum length of the confidence vectors
+max_lengths <- max(sapply(all_resting_confidences, length))
+
+# Convert the list to a dataframe, with each file's data in separate columns
+all_resting_confidences_df <- bind_cols(
+  lapply(all_resting_confidences, function(x) {
+    length(x) <- max_lengths
+    return(x)
+  })
+)
+
+# Calculate the mean confidence values
+lumberMeans <- all_resting_confidences_df %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = everything(), names_to = "File", values_to = "MeanConfidence") %>%
+  select(MeanConfidence)
+
+# Insert NA after row 5 and push other rows down
+na_row <- tibble(MeanConfidence = NA)
+lumberMeans <- bind_rows(lumberMeans[1:5, ], na_row, lumberMeans[6:nrow(lumberMeans), ])
+
+# Print the resulting dataframe with mean confidence values
+print(lumberMeans)
+
+```
+
+# Create golfMeans
+```{r}
+# Read the first CSV file into a data frame
+golfdf <- read.csv("golfSuccessMean.csv")
+
+golfMeans <- golfdf %>%
+  select(2) %>%
+  rename(MeanConfidence = 1)  # Rename the column if needed
+```
+
+# Create sandMeans
+```{r}
+sandMeans <- data.frame(MeanConfidence = rep(0.8, 15))
+```
+
+# Import Questionnaire data
+```{r}
+source("ImportQFull.R")
+```
+
+# Create dataframe for frustration
+```{r}
+# Grouping data in the example script (assuming `df` is defined earlier)
+justFrust <- df %>% 
+  group_by(ID, FrustLumber, FrustGolf, FrustSand) %>% 
+  summarise()
+```
+# Merge it together
+```{r}
+library(dplyr)
+
+# Create a dataframe with game names
+gameNames <- data.frame(Game = rep(c("Lumber", "Golf", "Sand"), each = 15)) %>%
+  mutate(Game = as.factor(Game))
+
+# Combine the mean confidence values
+meanConfidence <- rbind(lumberMeans, golfMeans, sandMeans)
+
+
+# Create a dataframe for frustration ratings
+frustrationRatings <- data.frame(
+  FrustrationRating = c(justFrust$FrustLumber, justFrust$FrustGolf, justFrust$FrustSand)
+) %>%
+  mutate(FrustrationRating = `as.numeric`(FrustrationRating))
+
+
+# Combine all data frames into a final data frame
+final_df <- bind_cols(gameNames, frustrationRatings, meanConfidence)
+
+```
+
+# Plot it
+```{r}
+library(ggplot2)
+
+# Scatterplot with color by gameNames, ignoring negative meanConfidence values
+ggplot(final_df %>% filter(MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating, color = Game)) +
+  geom_point(alpha = 0.5, size = 3) +  # Add transparency and adjust size of points
+  labs(title = "Scatterplot of Success rates vs. Frustration Rating",
+       x = "Success rates", y = "Frustration Rating") +
+  scale_color_manual(values = c("Lumber" = "blue", "Golf" = "green", "Sand" = "red")) +
+  scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
+  theme_minimal()
+
+```
+
+
+# Plot lumber
+```{r}
+library(ggplot2)
+
+# Scatterplot with color by gameNames (only for Lumber), ignoring negative meanConfidence values
+ggplot(final_df %>% filter(Game == "Lumber", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
+  geom_point(alpha = 0.5, size = 3, color = "blue") +  # Adjust color for Lumber
+  labs(title = "Scatterplot of Success rates vs. Frustration Rating (Lumber)",
+       x = "Success rates", y = "Frustration Rating") +
+  scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
+  theme_minimal()
+
+```
+
+# Plot Golf
+```{r}
+library(ggplot2)
+
+# Scatterplot with color by gameNames (only for Golf), ignoring negative meanConfidence values
+ggplot(final_df %>% filter(Game == "Golf", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
+  geom_point(alpha = 0.5, size = 3, color = "green") +  # Adjust color for Golf
+  labs(title = "Scatterplot of Success rates vs. Frustration Rating (Golf)",
+       x = "Success rates", y = "Frustration Rating") +
+  scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
+  theme_minimal()
+
+```
+
+# Plot sand
+```{r}
+#install.packages("ggbeeswarm")
+#install.packages("Rtools")
+library(ggplot2)
+library(ggbeeswarm)
+
+# Create a beeswarm plot with increased spacing
+ggplot(final_df %>% filter(Game == "Sand"), aes(x = MeanConfidence, y = FrustrationRating, color = Game)) +
+  geom_beeswarm(col = "red", size = 3) +  # Adjust swarm.spread
+  labs(title = "Beeswarm Plot of Sand Data",
+       x = "Success rates",
+       y = "Frustration Rating",
+       color = "Game") +
+  theme_minimal() +
+  ylim(-3, 3) +
+  xlim(0, 1)
+
+
+```
+
