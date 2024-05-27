@@ -116,7 +116,7 @@ library(ggplot2)
 ggplot(final_df %>% filter(MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating, color = Game)) +
   geom_point(alpha = 0.5, size = 3) +  # Add transparency and adjust size of points
   labs(title = "Scatterplot of Success rates vs. Frustration Rating",
-       x = "Success rates", y = "Frustration Rating") +
+       x = "Success rate", y = "Frustration Rating") +
   scale_color_manual(values = c("Lumber" = "blue", "Golf" = "green", "Sand" = "red")) +
   scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
@@ -132,13 +132,49 @@ library(ggplot2)
 # Scatterplot with color by gameNames (only for Lumber), ignoring negative meanConfidence values
 ggplot(final_df %>% filter(Game == "Lumber", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
   geom_point(alpha = 0.5, size = 3, color = "blue") +  # Adjust color for Lumber
+  geom_smooth(method = "lm", se = FALSE, color = "salmon") +  # Add a regression line
   labs(title = "Scatterplot of Success rates vs. Frustration Rating (Lumber)",
-       x = "Success rates", y = "Frustration Rating") +
+       x = "Success rate", y = "Frustration Rating") +
   scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
   theme_minimal()
 
 ```
+# Find a bunch of cool values for Lumber
+```{r}
+# Extract data about the reg line
+lumber_lm <- lm(FrustrationRating ~ MeanConfidence, data = final_df %>% filter(Game == "Lumber"))
+lumber_summary <- summary(lumber_lm)
+
+# Then calculate and print
+coefficients <- lumber_summary$coefficients
+r_squared <- lumber_summary$r.squared
+adj_r_squared <- lumber_summary$adj.r.squared
+p_values <- lumber_summary$coefficients[, "Pr(>|t|)"]
+correlation <- sqrt(r_squared)
+
+print(paste("Intercept:", coefficients[1, 1]))
+print(paste("Slope:", coefficients[2, 1]))
+print(paste("R-squared:", r_squared))
+print(paste("Adjusted R-squared:", adj_r_squared))
+print(paste("P-value (intercept):", p_values[1]))
+print(paste("P-value (slope):", p_values[2]))
+print(paste("Correlation:", correlation))
+
+# Calculate actual correlation, because the above calculation made it positive for some reason
+lumber_data <- final_df %>% filter(Game == "Lumber")
+
+lumber_data <- lumber_data %>%
+  mutate(
+    FrustrationRating = as.numeric(FrustrationRating),
+    MeanConfidence = as.numeric(MeanConfidence)
+  )
+
+# Calculate and print
+correlation <- cor(lumber_data$FrustrationRating, lumber_data$MeanConfidence, use = "complete.obs")
+print(correlation)
+```
+
 
 # Plot Golf
 ```{r}
@@ -147,11 +183,30 @@ library(ggplot2)
 # Scatterplot with color by gameNames (only for Golf), ignoring negative meanConfidence values
 ggplot(final_df %>% filter(Game == "Golf", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
   geom_point(alpha = 0.5, size = 3, color = "green") +  # Adjust color for Golf
+  geom_smooth(method = "lm", se = FALSE, color = "salmon") +  # Add a regression line
   labs(title = "Scatterplot of Success rates vs. Frustration Rating (Golf)",
-       x = "Success rates", y = "Frustration Rating") +
+       x = "Success rate", y = "Frustration Rating") +
   scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
   theme_minimal()
+
+# Extract data about the reg line
+golf_lm <- lm(FrustrationRating ~ MeanConfidence, data = final_df %>% filter(Game == "Golf"))
+golf_summary <- summary(golf_lm)
+
+coefficients <- golf_summary$coefficients
+r_squared <- golf_summary$r.squared
+adj_r_squared <- golf_summary$adj.r.squared
+p_values <- golf_summary$coefficients[, "Pr(>|t|)"]
+correlation <- sqrt(r_squared)
+
+print(paste("Intercept:", coefficients[1, 1]))
+print(paste("Slope:", coefficients[2, 1]))
+print(paste("R-squared:", r_squared))
+print(paste("Adjusted R-squared:", adj_r_squared))
+print(paste("P-value (intercept):", p_values[1]))
+print(paste("P-value (slope):", p_values[2]))
+print(paste("Correlation:", correlation))
 
 ```
 
@@ -166,7 +221,7 @@ library(ggbeeswarm)
 ggplot(final_df %>% filter(Game == "Sand"), aes(x = MeanConfidence, y = FrustrationRating, color = Game)) +
   geom_beeswarm(col = "red", size = 3) +  # Adjust swarm.spread
   labs(title = "Beeswarm Plot of Sand Data",
-       x = "Success rates",
+       x = "Success rate",
        y = "Frustration Rating",
        color = "Game") +
   theme_minimal() +
