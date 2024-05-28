@@ -37,15 +37,18 @@ for (file in csv_files) {
 }
 
 # Initialize a data frame to store the summary statistics
-lumber_summary_data <- data.frame(ID = integer(), AverageBCIConfidence = numeric())
+lumber_summary_data <- data.frame(ID = integer(), NumberOfSwings = integer(), AverageBCIConfidence = numeric())
 
-# Calculate the average BCI Confidence for each participant
+# Calculate the average BCI Confidence and count of "Resting" occurrences for each participant
 for (id in names(participant_data)) {
   # Extract participant number
   participant_number <- as.integer(sub("participant_", "", id))
   
   # Get the participant's data
   data <- participant_data[[id]]
+  
+  # Calculate the number of swings (count of "Resting" occurrences)
+  number_of_swings <- nrow(data)
   
   # Ensure that BCIConfidence is numeric and remove any non-numeric or missing values
   numeric_bci_confidence <- suppressWarnings(as.numeric(data$BCIConfidence))
@@ -55,7 +58,7 @@ for (id in names(participant_data)) {
   average_bci_confidence <- mean(numeric_bci_confidence)
   
   # Add the statistics to the summary data frame
-  lumber_summary_data <- rbind(lumber_summary_data, data.frame(ID = participant_number, AverageBCIConfidence = average_bci_confidence))
+  lumber_summary_data <- rbind(lumber_summary_data, data.frame(ID = participant_number, NumberOfSwings = number_of_swings, AverageBCIConfidence = average_bci_confidence))
 }
 
 # Print the summary data frame
