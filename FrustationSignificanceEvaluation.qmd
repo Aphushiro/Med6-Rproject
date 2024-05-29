@@ -1,0 +1,144 @@
+---
+
+---
+
+# Introduction
+Provide an overview of your analysis objectives and the dataset used.
+## Kruskal-Wallis
+```{r}
+# Run "ImportQFull.R" to run this
+
+# Load necessary libraries
+library(tidyverse)
+
+# Assuming df is your existing dataframe
+# Step 1: Select columns starting with "Frust" and reshape the data
+df_long <- df %>%
+  select(starts_with("Frust")) %>% 
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Value")
+
+# Step 2: Perform Kruskal-Wallis test
+kruskal_result <- kruskal.test(Value ~ Variable, data = df_long)
+
+# Display the Kruskal-Wallis test result
+print(kruskal_result)
+
+# Inspect the reshaped data
+head(df_long)
+
+# Step 2: Perform ANOVA
+anova_result <- aov(Value ~ Variable, data = df_long)
+
+# Display the ANOVA table
+summary(anova_result)
+
+# Optional: Perform Tukey's HSD post-hoc test if needed
+tukey_result <- TukeyHSD(anova_result)
+
+# Display the Tukey HSD results
+print(tukey_result)
+
+# Optional: Diagnostic plots to check assumptions
+par(mfrow = c(2, 2))
+plot(anova_result)
+```
+## Ordinal Logistical Regression
+```{r}
+# Load necessary libraries
+library(ordinal)
+library(tidyverse)
+
+# Assuming df is your existing data frame
+# Step 1: Select ID and columns starting with "Frust" and reshape the data
+df_long <- df %>%
+  select(ID, starts_with("Frust")) %>%
+  pivot_longer(cols = -ID, names_to = "Variable", values_to = "Value")
+
+# Step 2: Ensure 'Value' is treated as an ordinal factor
+df_long$Value <- as.ordered(df_long$Value)
+
+# Step 3: Fit the cumulative link mixed model
+clmm_model <- clmm(Value ~ Variable + (1 | ID), data = df_long)
+
+# Step 4: Display the summary of the model
+summary(clmm_model)
+```
+
+
+
+# Calculate Effect Sizes and Confidence Intervals
+## Effect Size (Cohen's d)
+Calculate Cohen's d to quantify the magnitude of differences between groups.
+```{r}
+# Extracting the variables of interest
+frust_lumber <- df$FrustLumber
+frust_golf <- df$FrustGolf
+frust_sand <- df$FrustSand
+
+# Calculating the mean difference for Golf to Lumber
+mean_diff_lumber <- mean(frust_golf) - mean(frust_lumber)
+
+# Calculating the pooled standard deviation for Golf to Lumber
+pooled_sd_lumber <- sqrt((sd(frust_lumber)^2 + sd(frust_golf)^2) / 2)
+
+# Cohen's d for Golf to Lumber
+cohen_d_lumber <- mean_diff_lumber / pooled_sd_lumber
+
+# Calculating the mean difference for Golf to Sand
+mean_diff_sand <- mean(frust_golf) - mean(frust_sand)
+
+# Calculating the pooled standard deviation for Golf to Sand
+pooled_sd_sand <- sqrt((sd(frust_sand)^2 + sd(frust_golf)^2) / 2)
+
+# Cohen's d for Golf to Sand
+cohen_d_sand <- mean_diff_sand / pooled_sd_sand
+
+# Output Cohen's d for both comparisons
+print(paste("Cohen's d for Golf to Lumber:", round(cohen_d_lumber, 2)))
+print(paste("Cohen's d for Golf to Sand:", round(cohen_d_sand, 2)))
+
+```
+## Confidence Intervals around Effect Sizes
+Compute confidence intervals around effect sizes to assess the precision and reliability of your estimates.
+
+
+
+# Explore Individual Differences
+Incorporate mixed-effects models to account for individual variability.
+Discuss the importance of mixed-effects models in capturing individual differences.
+```{r}
+
+```
+
+
+# Visualize and Analyze Bimodal Distributions
+Explore bimodal distributions observed in the data using violin plots and other visualization techniques.
+Discuss implications and underlying factors contributing to the bimodal patterns.
+```{r}
+
+```
+
+
+# Interpret Qualitative Data
+Analyze responses to qualitative questions to identify themes or patterns in participants' experiences.
+Discuss how qualitative insights complement quantitative findings.
+```{r}
+
+```
+
+
+# Refine Statistical Analyses
+Evaluate the appropriateness of statistical tests and models used in the analysis.
+Consider alternative statistical approaches if necessary.
+```{r}
+
+```
+
+
+# Document and Report Findings
+Document all steps of the analysis process, including data preprocessing and statistical analyses.
+Prepare clear and concise summaries of findings, including visualizations and key insights.
+```{r}
+
+```
+

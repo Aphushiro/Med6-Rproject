@@ -1,4 +1,5 @@
-# Run "ImportQFull.R" to run this
+
+# Kruskal Wallis ----------------------------------------------------------
 
 # Load necessary libraries
 library(tidyverse)
@@ -33,3 +34,24 @@ print(tukey_result)
 # Optional: Diagnostic plots to check assumptions
 par(mfrow = c(2, 2))
 plot(anova_result)
+
+
+
+# Likert scale as Continuous data (Linear Mixed Model) ---------------------------------------------------------
+
+# Load necessary packages
+library(lme4)
+library(ggplot2)
+library(dplyr)
+
+# Fit the linear mixed model treating Likert data as continuous
+lmm <- lmer(Value ~ Variable + (1 | ID), data = justFrust_long)
+# Summarize the model
+summary(lmm)
+
+# Calculate p-values manually
+p_value_lumber <- 2 * (1 - pnorm(abs(-1.379)))
+p_value_sand <- 2 * (1 - pnorm(abs(-1.379)))
+
+p_value_lumber
+p_value_sand
