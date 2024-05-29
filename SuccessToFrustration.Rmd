@@ -133,11 +133,15 @@ library(ggplot2)
 ggplot(final_df %>% filter(Game == "Lumber", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
   geom_point(alpha = 0.5, size = 3, color = "blue") +  # Adjust color for Lumber
   geom_smooth(method = "lm", se = FALSE, color = "salmon") +  # Add a regression line
-  labs(title = "Scatterplot of Success rates vs. Frustration Rating (Lumber)",
-       x = "Success rate", y = "Frustration Rating") +
+  labs(x = "Success rate", y = "Frustration Rating") +
   scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20),
+    plot.title = element_blank()
+  )
 
 ```
 # Find a bunch of cool values for Lumber
@@ -184,11 +188,15 @@ library(ggplot2)
 ggplot(final_df %>% filter(Game == "Golf", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
   geom_point(alpha = 0.5, size = 3, color = "green") +  # Adjust color for Golf
   geom_smooth(method = "lm", se = FALSE, color = "salmon") +  # Add a regression line
-  labs(title = "Scatterplot of Success rates vs. Frustration Rating (Golf)",
-       x = "Success rate", y = "Frustration Rating") +
+  labs(x = "Success rate", y = "Frustration Rating") +
   scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
   scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20),
+    plot.title = element_blank()
+  )
 
 # Extract data about the reg line
 golf_lm <- lm(FrustrationRating ~ MeanConfidence, data = final_df %>% filter(Game == "Golf"))
@@ -218,15 +226,19 @@ library(ggplot2)
 library(ggbeeswarm)
 
 # Create a beeswarm plot with increased spacing
-ggplot(final_df %>% filter(Game == "Sand"), aes(x = MeanConfidence, y = FrustrationRating, color = Game)) +
-  geom_beeswarm(col = "red", size = 3) +  # Adjust swarm.spread
-  labs(title = "Beeswarm Plot of Sand Data",
-       x = "Success rate",
+ggplot(final_df %>% filter(Game == "Sand", MeanConfidence >= 0), aes(x = MeanConfidence, y = FrustrationRating)) +
+  geom_beeswarm(color = "red", size = 3) +  # Adjust swarm.spread
+  labs(x = "Success rate",
        y = "Frustration Rating",
        color = "Game") +
   theme_minimal() +
-  ylim(-3, 3) +
-  xlim(0, 1)
+  scale_y_continuous(breaks = seq(-3, 3, by = 1)) +  # Adjust y-axis breaks
+  scale_x_continuous(breaks = seq(0, 1, by = 0.1), limits = c(0, 1)) +  # Adjust x-axis breaks and limits
+  theme(
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20),
+    plot.title = element_blank()
+  )
 
 
 ```
