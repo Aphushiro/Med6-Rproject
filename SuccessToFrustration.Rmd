@@ -83,6 +83,14 @@ source("ImportQFull.R")
 justFrust <- df %>% 
   group_by(ID, FrustLumber, FrustGolf, FrustSand) %>% 
   summarise()
+
+justEnj <- df %>% 
+  group_by(ID, , FrustGolf, FrustSand) %>% 
+  summarise()
+
+mostFrust <- qualData %>%
+  group_by(ID, MostFrustrating) %>%
+  summarise()
 ```
 # Merge it together
 ```{r}

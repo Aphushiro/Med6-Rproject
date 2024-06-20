@@ -503,7 +503,7 @@ summary_stats <- justFrust_long %>%
   )
 
 # Create the plot
-ggplot() +
+p <- ggplot() +
   geom_line(data = justFrust_long, aes(x = Variable, y = Value, group = ID), 
             color = "black", alpha = justFrust_long$alpha, position = position_jitter(width = 0, height = 0.3)) +
   geom_quasirandom(data = justFrust_long, aes(x = Variable, y = Value, color = MostFrustratingMatch), 
@@ -526,6 +526,75 @@ ggplot() +
   theme_minimal() +
   theme(panel.grid.major.y = element_blank(),
         plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r}
+library(tidyverse)
+library(ggbeeswarm)
+
+# Merge the data
+merged_data <- df %>%
+  left_join(qualData, by = "ID")
+
+# Reshape to long format
+justFrust_long <- merged_data %>%
+  pivot_longer(cols = starts_with("Frust"), names_to = "Variable", values_to = "Value") %>%
+  mutate(MostFrustratingMatch = case_when(
+    (Variable == "FrustLumber" & MostFrustrating == "Lumber") ~ TRUE,
+    (Variable == "FrustGolf" & MostFrustrating == "Golf") ~ TRUE,
+    (Variable == "FrustSand" & MostFrustrating == "Sand") ~ TRUE,
+    TRUE ~ FALSE
+  )) %>%
+  group_by(ID) %>%
+  mutate(average_frustration = mean(Value)) %>%
+  ungroup() %>%
+  mutate(alpha = scale(average_frustration, 
+                       center = min(average_frustration), 
+                       scale = max(average_frustration) - min(average_frustration)))
+
+# Set the factor levels for Variable to reorder categories
+justFrust_long$Variable <- factor(justFrust_long$Variable, levels = c("FrustLumber", "FrustGolf", "FrustSand"))
+
+# Calculate mean and standard error for each variable
+summary_stats <- justFrust_long %>%
+  group_by(Variable) %>%
+  summarize(
+    mean = mean(Value),
+    std_error = sd(Value) / sqrt(n())
+  )
+
+# Create the plot
+p <- ggplot() +
+  geom_line(data = justFrust_long, aes(x = Variable, y = Value, group = ID), 
+            color = "black", alpha = justFrust_long$alpha, position = position_jitter(width = 0, height = 0.3)) +
+  geom_quasirandom(data = justFrust_long, aes(x = Variable, y = Value, color = MostFrustratingMatch), 
+                   width = 0.3, size = 2, show.legend = FALSE, alpha = 1) +
+  #geom_errorbar(data = summary_stats, aes(x = Variable, ymin = mean - std_error, ymax = mean + std_error), 
+  #              width = 0.1, color = "black") +
+  #geom_point(data = summary_stats, aes(x = Variable, y = mean), size = 3, color = "black", show.legend = FALSE) +
+  #geom_text(data = summary_stats, aes(x = Variable, y = mean, label = round(mean, 2)), 
+  #          vjust = -0.5, hjust = -0.5, color = "black") +
+  labs(title = "Frustration Experienced on Worst-Case States",
+       x = "Games",
+       y = "Frustration Rating") +
+  scale_y_continuous(breaks = seq(-3, 3, 1), limits = c(-3.3, 3.3)) +
+  scale_x_discrete(labels = c("FrustLumber" = "Lumber", "FrustGolf" = "Golf", "FrustSand" = "Sand")) +
+  scale_color_manual(
+    values = c("TRUE" = "gray", "FALSE" = "gray"),
+    name = "Selected as\nMost Frustrating",
+    labels = c("TRUE" = "Yes", "FALSE" = "No")
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(color = "white", size = 12, face = "bold"),       # Change all text to white, increase size and bolden
+    axis.text = element_text(color = "white", size = 10, face = "bold"),  # Change axis text to white, increase size and bolden
+    axis.title = element_text(color = "white", size = 12, face = "bold"), # Change axis titles to white, increase size and bolden
+    panel.grid.major = element_blank(),         # Remove major gridlines
+    #panel.grid.minor = element_,         # Remove minor gridlines
+  )
+
+ggsave(filename = "wco_frust.png", plot = p, device = "png", width = 3, height = 3.5, units = "in", bg = "transparent")
 
 ```
 
