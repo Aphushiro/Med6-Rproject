@@ -36,10 +36,15 @@ create_plot_and_model <- function(df, qualData, data_type) {
   
   # Create the plot
   p <- ggplot(long_data) +
-    geom_line(aes(x = Variable, y = Value, group = ID), 
-              color = "black", alpha = long_data$alpha, position = position_jitter(width = 0, height = 0.3)) +
+#    geom_line(aes(x = Variable, y = Value, group = ID), 
+#              color = "black", alpha = long_data$alpha, position = position_jitter(width = 0, height = 0.3)) +
     geom_quasirandom(aes(x = Variable, y = Value, color = MostFrustratingMatch), 
-                     width = 0.3, size = 2, show.legend = FALSE, alpha = 1) +
+                     width = 0.3, size = 2, show.legend = FALSE, alpha = 0.5) +
+    geom_errorbar(data = summary_stats, aes(x = Variable, ymin = mean - std_error, ymax = mean + std_error), 
+                  width = 0.1, color = "white") +
+    geom_point(data = summary_stats, aes(x = Variable, y = mean), size = 3, color = "red", show.legend = FALSE) +  
+    geom_text(data = summary_stats, aes(x = Variable, y = mean, label = round(mean, 2)), 
+              vjust = -0.5, hjust = -0.25, color = "white") +
     labs(#title = data_type,
          x = "Games",
          y = paste(data_type, "Rating")) +
@@ -48,7 +53,7 @@ create_plot_and_model <- function(df, qualData, data_type) {
 #                                paste0(data_type, "Golf") = "Golf", 
 #                                paste0(data_type, "Sand") = "Sand")) +
     scale_color_manual(
-      values = c("TRUE" = "gray", "FALSE" = "gray"),
+      values = c("TRUE" = "darkgray", "FALSE" = "darkgray"),
       name = "Selected as\nMost Frustrating",
       labels = c("TRUE" = "Yes", "FALSE" = "No")
     ) +
@@ -60,7 +65,7 @@ create_plot_and_model <- function(df, qualData, data_type) {
       panel.grid.major = element_blank()
     )
   
-  ggsave(filename = paste0(data_type, "_plot.png"), plot = p, device = "png", width = 3, height = 3.5, units = "in", bg = "transparent")
+  ggsave(filename = paste0(data_type, "_plot_avg.png"), plot = p, device = "png", width = 3, height = 3.5, units = "in", bg = "transparent")
   
   # Ordinal regression part
   df_long <- df %>%
